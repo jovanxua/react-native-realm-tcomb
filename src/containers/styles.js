@@ -14,12 +14,11 @@ export default {
 
     header: {
         container: {
-            height: 60,
+            height: 55,
             backgroundColor: '#2574A9',
             justifyContent: 'center',
             alignItems: 'center',
-            elevation: 5,
-            marginBottom: 5
+            elevation: 5
         },
         
         txtTitle: {
@@ -31,7 +30,6 @@ export default {
 
     body: {
         flex:1,
-        paddingBottom: 10
     },
 
     placeholder: {

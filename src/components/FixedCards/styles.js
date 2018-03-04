@@ -16,8 +16,8 @@ export default {
     container: {
         backgroundColor: '#fff',
         borderRadius: 2,
-        marginTop: 7,
-        marginBottom: 3,
+        marginTop: 5,
+        marginBottom: 5,
         marginLeft: 10,
         marginRight: 10,
         elevation: 5,
@@ -38,22 +38,23 @@ export default {
         },
 
         placeHolderTitle: {
+            backgroundColor: 'transparent',
             flex: 1,
             paddingTop: 10,
-            paddingBottom: 15,
             paddingLeft: 40,
-            paddingRight: 40,
-            alignSelf: 'flex-start',
-            justifyContent: 'flex-end',
-            backgroundColor: 'transparent',
+            paddingRight: 5,
+            justifyContent: 'flex-start',
+            justifyContent: 'center',
             /* borderBottomRightRadius: 50 */
         },
 
         contBtn: {
-            width: 70,
+            width: 80,
             backgroundColor: 'transparent',
             justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingRight: 10,
 
         },
 
@@ -62,6 +63,11 @@ export default {
             color: '#505251',
             fontWeight:'500',
             fontFamily: 'Helvetica-Bold'
+        },
+
+        btnStyle: {
+            flex:1, 
+            alignItems: 'center'
         }
     },
 

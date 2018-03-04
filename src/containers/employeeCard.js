@@ -18,6 +18,9 @@ import FixedCard1 from './../components/FixedCards';
 //Utils
 import * as utils from '../utils';
 
+//Constants
+import {GENDER_OPTIONS, POSITION_OPTIONS} from './data';
+
 export default class EmployeeCard extends Component {
     constructor(props){
         super(props);
@@ -55,10 +58,10 @@ export default class EmployeeCard extends Component {
             },,
             {
                 label: 'POSITION',
-                value: this.props.data.position
+                value: POSITION_OPTIONS[this.props.data.position]
             },,
             {
-                label: 'SALARY',
+                label: 'RATE PER MONTH',
                 value: this.props.data.salary
             },
         ]
@@ -73,9 +76,12 @@ export default class EmployeeCard extends Component {
                     title={
                         this.props.data.lastname + ', ' + 
                         this.props.data.firstname + ' ' + 
-                        this.props.data.middlename[0] + '.'
+                        this.props.data.middlename
                     }
-                    attributes={this.state._aEmployeeData}/>
+                    employeeData={this.props.data}
+                    onEdit={(data) => this.props.onEdit(data)}
+                    attributes={this.state._aEmployeeData}
+                    onDelete={(data) => this.props.onDelete(data)}/>
             </View>
         );
     }

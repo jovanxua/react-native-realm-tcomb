@@ -26,40 +26,24 @@ import * as utils from '../utils';
 import stylesheet from '../customTcomb/styles';
 
 //Constants
-const ERROR_MESSAGE = '*Required field'
+import {GENDER_OPTIONS, POSITION_OPTIONS} from './data';
+const ERROR_MESSAGE = '*Required field';
 const Form = t.form.Form;
-const GENDER = t.enums({
-    Male: 'Male',
-    Female: 'Female'
-})
-
-const POSITION = t.enums({
-    1: 'HR Staff',
-    2: 'Accounting Staff',
-    3: 'Engineer I',
-    4: 'Engineer II',
-    5: 'Engineer III',
-    6: 'Engineer IIII',
-    7: 'Senior Engineer I',
-    8: 'Senior Engineer II',
-    9: 'Senior Engineer III',
-    10: 'Manager',
-})
 
 export default class EmployeeForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
             _oEmployee: {
-                firstname: '',
-                middlename: '',
-                lastname: '',
-                nickname: '',
-                birthday: null,
-                gender: '',
-                address: '',
-                position: '',
-                salary: ''
+                firstname: this.props.activeData.firstname || '',
+                middlename: this.props.activeData.middlename || '',
+                lastname: this.props.activeData.lastname || '',
+                nickname: this.props.activeData.nickname || '',
+                birthday: this.props.activeData.birthday ? new Date(this.props.activeData.birthday) : null,
+                gender: this.props.activeData.gender || '',
+                address: this.props.activeData.address || '',
+                position: this.props.activeData.position || '',
+                salary: this.props.activeData.salary || '',
             },
 
             _oOriginalData: null
@@ -113,8 +97,12 @@ export default class EmployeeForm extends Component {
     
     
     render(){
+        console.log('GENDER_OPTIONS: ' + JSON.stringify(GENDER_OPTIONS));
+        console.log('POSITION_OPTIONS: ' + JSON.stringify(POSITION_OPTIONS));
         console.log('JSON.stringify(this.state._oEmployee): ' + JSON.stringify(this.state._oEmployee));
         console.log('JSON.stringify(this.state._oOriginalData): ' + JSON.stringify(this.state._oOriginalData));
+        const GENDER = t.enums(GENDER_OPTIONS)
+        const POSITION = t.enums(POSITION_OPTIONS)
         const OPTIONS = {
             fields: {
                 firstname:{ 
@@ -193,7 +181,7 @@ export default class EmployeeForm extends Component {
                 onSubmit = {this._onSubmit}
                 onCancel = {this._onCancel}
                 padding = {35}
-                title='ADD NEW EMPLOYEE'>
+                title={this.props.title}>
 
                 <Form 
                     ref='form_employee'
@@ -201,7 +189,7 @@ export default class EmployeeForm extends Component {
                     onChange={this._onChange}
                     value={this.state._oEmployee}
                     options={OPTIONS}/>
-
+                
             </FormContainer>
         )
     }

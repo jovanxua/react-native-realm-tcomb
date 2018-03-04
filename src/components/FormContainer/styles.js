@@ -7,7 +7,7 @@ export default {
 
     header: {
         container: {
-            height: 60,
+            height: 55,
             backgroundColor: '#2574A9',
             flexDirection: 'row',
             elevation: 10,
@@ -44,14 +44,14 @@ export default {
 
         txtSave: {
             fontSize: 15,
-            color: '#dbdcdd'
+            color: '#FFFFFF'
         }
     },
 
     body: {
         container: {
             flex: 1,
-            backgroundColor: '#013243'
+            backgroundColor: '#d2dae2'
         },
 
         content: {

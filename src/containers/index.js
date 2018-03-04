@@ -21,6 +21,18 @@ import EmployeeForm from './employeeForm';
 import ActionButton from '../components/ActionButton';
 import EmployeeCard from './employeeCard';
 
+//Utils
+import * as utils from '../utils';
+
+//Constants
+const ERROR_SAVE = 'An error was encountered while saving employee data. Please try again.';
+const ERROR_UPDATE = 'An error was encountered while saving employee data. Please try again.';
+const ERROR_DELETE = 'An error was encountered while deleting an employee. Please try again.';
+const SUCCESS_ADD = 'New Employee has been successfully added.'
+const SUCCESS_UPDATE = 'Successfully updated existing data.'
+const SUCCESS_DELETE = 'Successfully deleted ';
+const WARNING_DELETE = 'This action is irreversible. Are you sure you want to delete '
+
 export default class EmployeeList extends Component {
   constructor(props) {
     super(props);
@@ -64,7 +76,6 @@ export default class EmployeeList extends Component {
   _initData = async() => {
     await Realm.open({schema: [EmployeeSchema], schemaVersion: 4})
     .then(realm => {
-      console.log('_initData_realm: ' + realm);
       this.setState({ realm})
     })
     .catch(error => {
@@ -79,17 +90,26 @@ export default class EmployeeList extends Component {
   }
 
   _addNewEmployee = () => {
-    this.setState({ _bShowForm: true })
+    this.setState({ 
+      _bShowForm: true,
+      _oActiveEmployee: JSON.parse(JSON.stringify(this.state._oDefaultEmployeeInfo))
+    })
+  }
+
+  _onEdit = (oActiveData) => {
+    this.setState({ 
+      _bShowForm: true,
+      _oActiveEmployee: {...oActiveData}
+    })
   }
 
   _getData = () => {
-    const oEmployeeList = this.state.realm.objects('Employee');
-    this.setState({ _aEmployeeList: oEmployeeList })
-    console.log('Realm.oEmployeeList: ' + JSON.stringify(oEmployeeList));
+    const oEmployeeList = this.state.realm.objects('Employee').sorted('lastname');
+    this.setState({ _aEmployeeList: [...oEmployeeList] })
   }
 
   _onCancel = () => {
-    this.setState({ _bShowForm: false })
+    this._hideForm()
   }
 
   _onSave = async(value) => {
@@ -97,7 +117,7 @@ export default class EmployeeList extends Component {
     if(bIsSaved){
       Alert.alert(
         'Success',
-        'New Employee has been successfully added.',
+        this.state._oActiveEmployee.key === '' ? SUCCESS_ADD : SUCCESS_UPDATE,
         [{text: 'OK', onPress: this._hideForm}],
         { cancelable: false }
       )
@@ -105,7 +125,40 @@ export default class EmployeeList extends Component {
     else{
       Alert.alert(
         'Error',
-        'An error was encountered while saving employee data. Please try again.',
+        value.key === '' ? ERROR_SAVE : ERROR_UPDATE,
+        [{text: 'OK', onPress: ()=>{}}],
+        { cancelable: false }
+      )
+    }
+  }
+
+  _onDelete = (oData) => {
+    const oName =  oData.firstname + ' ' + oData.middlename + ' ' + oData.lastname
+    Alert.alert(
+      'Warning',
+      WARNING_DELETE + oName + ' ?',
+      [
+          {text: 'NO', onPress: () => {}},
+          {text: 'YES', onPress: () => {this._deleteData(oData, oName)} },
+      ],
+          { cancelable: false }
+    )
+  }
+
+  _deleteData = async(oData, oName) => {
+    let bFlag = await this._writeToStore(oData, true);
+    if(bFlag){
+      Alert.alert(
+        'Success',
+        SUCCESS_DELETE + oName,
+        [{text: 'OK', onPress: this._hideForm}],
+        { cancelable: false }
+      )
+    }
+    else{
+      Alert.alert(
+        'Error',
+        ERROR_DELETE,
         [{text: 'OK', onPress: ()=>{}}],
         { cancelable: false }
       )
@@ -113,27 +166,53 @@ export default class EmployeeList extends Component {
   }
 
   _hideForm = () => {
-    this.setState({ _bShowForm: false })
+    this.setState({ 
+      _bShowForm: false,
+      _oActiveEmployee: null
+    })
   }
 
-  //Ream Write
-  _writeToStore = async (oData) => {
+  //Realm CRUD
+  _writeToStore = async (oData, bDelelete = false) => {
     try{
+      const bUpdateFlag = false;
       const realm = this.state.realm;
+      const iKey = '';
+      //Delete Key
+      if(bDelelete){
+        iKey=oData.key;
+        bUpdateFlag = true;
+      }
+      //Add Key
+      else if(this.state._oActiveEmployee.key === ''){
+        iKey = String(this.state._aEmployeeList.length);
+      }
+      //Modify Key
+      else{
+        iKey = String(this.state._oActiveEmployee.key);
+          bUpdateFlag = true;
+      }
+      
       await realm.write(() => {
-        let charlie = realm.create('Employee', {
-          key: String(this.state._aEmployeeList.length),
+        let oEmployee = realm.create('Employee', {
+          key: iKey,
           firstname:  oData.firstname || '',
           middlename: oData.middlename || '',
           lastname: oData.lastname || '',
           nickname: oData.nickname || '',
-          birthday: oData.birthday || '',
+          birthday: utils.convertDateToString(oData.birthday)  || '',
           gender: oData.gender || '',
           address: oData.address || '',
           position: oData.position || '',
           salary: oData.salary || '',
-        });
+        }, bUpdateFlag);
+
+        //Delete Action
+        if(bDelelete){
+          realm.delete(oEmployee);
+        }
       });
+      this._getData();
       return true;
     }
     
@@ -144,16 +223,16 @@ export default class EmployeeList extends Component {
   }
 
   render() {
-    console.log('rendering EMPLOYEE LIST');
     const iListLen = this.state._aEmployeeList.length;
 
     if(this.state._bShowForm){
       return(
         <EmployeeForm
-          title={this.state._oActiveEmployee ? 'MODIFY EMPLOYEE PROFILE' : 'ADD NEW EMPLOYEE'}
+          title={this.state._oActiveEmployee.key === '' ? 'ADD NEW EMPLOYEE' : 'MODIFY EMPLOYEE PROFILE' }
           visible={this.state._bShowForm}
           onCancel={this._onCancel}
           onSave={this._onSave}
+          activeData={this.state._oActiveEmployee}
         />
       )
     }
@@ -169,13 +248,17 @@ export default class EmployeeList extends Component {
       const oList = (
         <FlatList
             getItemLayout={this._getItemLayout}
-            initialNumToRender={3}
+            initialNumToRender={2}
             refreshing={this.state._refreshing}
             onRefresh={() => {this._refreshList()}}
             ref={(ref) => { this.flatListRef = ref; }}
             data={this.state._aEmployeeList}
             renderItem={({item}) =>
-              <EmployeeCard data={item}/> 
+              <EmployeeCard
+                data={item}
+                onEdit={this._onEdit}
+                onDelete={this._onDelete}
+              />
             }
         />
       )
